@@ -1,9 +1,12 @@
+import japanize_matplotlib
 import matplotlib
 
 matplotlib.use("Agg")  #!重要
 import matplotlib.pyplot as plt
 from django.shortcuts import render
 from django.views.generic import FormView, TemplateView, View
+
+from my_site.preprocessing_data import preprocessing_data
 
 
 # Create your views here.
@@ -13,51 +16,41 @@ class IndexView(TemplateView):
     def get_context_data(self, **kwargs):
 
         # TODO: draw_graphを呼び出して、パスを取得する
-        output_path = IndexView.draw_graph()
+        month_path = IndexView.bar_graph("月")
+        category_path = IndexView.bar_graph("カテゴリ")
 
-        img_path = "/".join(output_path.split("/")[1:])  # TODO:なんとかいい感じにする
-        context = {"img_path": img_path}
+        context = {
+            "month_path": month_path,
+            "category_path": category_path,
+        }
 
         return context
 
     @classmethod
-    def draw_graph(cls):
-        # money = Money.objects.filter(
-        #     use_date__year=year, use_date__month=month
-        # ).order_by("use_date")
-        # last_day = calendar.monthrange(int(year), int(month))[1] + 1
-        # day = [i for i in range(1, last_day)]
-        # cost = [0 for i in range(len(day))]
-        # for m in money:
-        #     cost[int(str(m.use_date).split("-")[2]) - 1] += int(m.cost)
-        # plt.figure()
-        # plt.bar(day, cost, color="#00bfff", edgecolor="#0000ff")
-        # plt.grid(True)
-        # plt.xlim([0, 31])
-        # plt.xlabel("日付", fontsize=16)
-        # plt.ylabel("支出額(円)", fontsize=16)
-        # # staticフォルダの中にimagesというフォルダを用意しておきその中に入るようにしておく
+    def bar_graph(cls, colname):
 
-        #!
-        year = 2021
-        month = 1
-        output_path = f"my_site/static/images/bar_{year}_{month}.svg"
+        output_path = f"my_site/static/images/{colname}.svg"
 
-        y1_value = [1, 2, 4, 8, 16, 32, 64, 128, 256, 1028]
-        x1_value = range(1, len(y1_value) + 1)
+        df = preprocessing_data()
 
-        y2_value = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
-        x2_value = range(1, len(y2_value) + 1)
+        agg_df = df.groupby([colname])["支払総額"].sum()
+        agg_df = agg_df.sort_values(ascending=False)
+        # agg_df = df.groupby(["月", "category"])["支払総額"].sum()
+        # print(agg_df)
 
-        # fig = plt.figure(figsize=(10, 6))
+        # TODO:
+        plt.bar(
+            agg_df.index,
+            agg_df.values,
+            color="#FF5B70",
+            edgecolor="#CC4959",
+            linewidth=4,
+        )
 
-        plt.plot(x1_value, y1_value, label="test1")
-        plt.plot(x2_value, y2_value, label="test2")
-
-        plt.title("Test Graph", {"fontsize": 20})
-        plt.xlabel("Numbers", {"fontsize": 20})
-        plt.ylabel("Value", {"fontsize": 20})
-        plt.tick_params(labelsize=20)
-        plt.legend(prop={"size": 20}, loc="best")
+        plt.xticks(rotation=45)
         plt.savefig(output_path, transparent=True)
-        return output_path
+        img_path = "/".join(output_path.split("/")[1:])  # TODO:なんとかいい感じにする
+
+        plt.clf()  # 一回描画したfigを削除する（重ねて描画されてしまうため）
+
+        return img_path
