@@ -9,25 +9,16 @@ from django.views.generic import FormView, TemplateView, View
 # Create your views here.
 class IndexView(TemplateView):
     template_name = "my_site/index.html"
-    # template_name = "my_site/index.html"
 
-    def get(self, request, **kwargs):
+    def get_context_data(self, **kwargs):
 
         # TODO: draw_graphを呼び出して、パスを取得する
         output_path = IndexView.draw_graph()
 
         img_path = "/".join(output_path.split("/")[1:])  # TODO:なんとかいい感じにする
-        print(img_path)
-        print("━━━━━━━━━━")
-        context = {
-            "img_path": img_path
-            # "year": 2021,
-            # "month": 1
-            # 'view': self,
-            # 'items': ....
-        }
+        context = {"img_path": img_path}
 
-        return self.render_to_response(context)
+        return context
 
     @classmethod
     def draw_graph(cls):
