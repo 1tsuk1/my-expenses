@@ -27,8 +27,13 @@ for target_money_csv in all_money_csv:
     target_df = pd.read_csv(target_money_csv, usecols=TARGET_COLS)
     all_df = pd.concat([all_df, target_df], axis="rows").reset_index(drop=True)
 
+
+# -----月に関するカラムを追加-------
+tmp = pd.to_datetime(all_df["利用日"])
+all_df["年"] = tmp.dt.year
+all_df["月"] = tmp.dt.month
+
 # ------------カテゴリの追加------------------
-# category_judge_dict = {"趣味": ["AMAZON", "GOOGLE", "APPLE"]}
 
 all_df["category"] = ""
 for category, judge_list in category_judge_dict.items():
@@ -40,6 +45,13 @@ for category, judge_list in category_judge_dict.items():
 
 
 agg_df = all_df.groupby("利用店名・商品名")["支払総額"].sum()
-agg_df = all_df.groupby("category")["支払総額"].sum()
+print(agg_df)
 
+agg_df = all_df.groupby("category")["支払総額"].sum()
+print(agg_df)
+
+agg_df = all_df.groupby(["月", "category"])["支払総額"].sum()
+print(agg_df)
+
+agg_df = all_df.groupby(["月"])["支払総額"].sum()
 print(agg_df)
