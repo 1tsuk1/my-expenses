@@ -28,6 +28,7 @@ def preprocessing_data():
         target_df = pd.read_csv(target_money_csv, usecols=TARGET_COLS)
         all_df = pd.concat([all_df, target_df], axis="rows").reset_index(drop=True)
 
+    all_df = all_df.dropna(subset=["利用日"])
     # -----月に関するカラムを追加-------
     tmp = pd.to_datetime(all_df["利用日"])
     all_df["年"] = tmp.dt.year
